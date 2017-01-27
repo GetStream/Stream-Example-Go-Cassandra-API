@@ -18,7 +18,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 	}
 	user_id, err := gocql.ParseUUID(userIdStr)
 	if err != nil {
-		errs = append(errs, "Parameter 'user_id' not an integer")
+		errs = append(errs, "Parameter 'user_id' not a UUID")
 	}
 
 	if message, errStr = processFormField(r, "message"); len(errStr) != 0 {

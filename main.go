@@ -10,17 +10,15 @@ echo "use streamdemoapi; create index on messages (user_id);" | cqlsh
 echo "use streamdemoapi; drop table users; CREATE TABLE users ( id UUID, firstname text, lastname text, age int, email text, city text, PRIMARY KEY (id));" | cqlsh
 */
 
-
 import (
 	"net/http"
-	"github.com/gocql/gocql"
+	"log"
+	"encoding/json"
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Cassandra"
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Stream"
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Users"
-	"github.com/gorilla/mux"
-	"log"
-	"encoding/json"
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Messages"
+	"github.com/gorilla/mux"
 )
 
 type HeartbeatResponse struct {
@@ -28,11 +26,6 @@ type HeartbeatResponse struct {
 	Code   int `json:"code"`
 }
 
-type Message struct {
-	ID      gocql.UUID `json:"id"`
-	UserID  gocql.UUID `json:"user_id"`
-	Message string `json:"message"`
-}
 
 func main() {
 	err := Stream.Connect(
@@ -45,14 +38,6 @@ func main() {
 
 	CassandraSession := Cassandra.Session
 	defer CassandraSession.Close()
-
-	//var id gocql.UUID
-	//var text string
-	//if err := session.Query(`SELECT id, message FROM messages WHERE timeline = ? LIMIT 1`,
-	//	"me").Consistency(gocql.One).Scan(&id, &text); err != nil {
-	//	log.Fatal(err)
-	//}
-	//fmt.Println("Message:", id, text)
 
 	router := mux.NewRouter().StrictSlash(true)
 	router.HandleFunc("/", Heartbeat)

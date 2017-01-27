@@ -11,6 +11,10 @@ type Message struct {
 	Message      string `json:"lastname"`
 }
 
+type GetMessageResponse struct {
+	Message Message `json:"message"`
+}
+
 type MessagesResponse struct {
 	Messages []Message `json:"messages"`
 }
@@ -23,6 +27,3 @@ type ErrorResponse struct {
 	Errors []string `json:"errors"`
 }
 
-type GetMessageResponse struct {
-	Message Message `json:"message"`
-}

@@ -13,6 +13,10 @@ type User struct {
 	City      string `json:"city"`
 }
 
+type GetUserResponse struct {
+	User   User `json:"user"`
+}
+
 type UsersResponse struct {
 	Users []User `json:"users"`
 }
@@ -25,6 +29,3 @@ type ErrorResponse struct {
 	Errors  []string `json:"errors"`
 }
 
-type GetUserResponse struct {
-	User   User `json:"user"`
-}

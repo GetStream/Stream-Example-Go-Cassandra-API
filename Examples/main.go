@@ -49,11 +49,11 @@ func postPayload(url string, payload url.Values) error {
 func main() {
 	var err error
 
-	//fmt.Println("fetching heartbeat")
-	//err = getPayload("http://localhost:8080/")
-	//if err != nil {
-	//	fmt.Println("error:", err)
-	//}
+	fmt.Println("fetching heartbeat")
+	err = getPayload("http://localhost:8080/")
+	if err != nil {
+		fmt.Println("error:", err)
+	}
 
 	//fmt.Println("fetching all users (should be emtpy)")
 	//err = getPayload("http://localhost:8080/users")
