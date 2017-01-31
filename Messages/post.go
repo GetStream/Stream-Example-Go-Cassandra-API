@@ -9,29 +9,33 @@ import (
 	getstream "github.com/GetStream/stream-go"
 )
 
+// Post -- handles POST request to /messages/new to create a new message
+// params:
+// w - response writer for building JSON payload response
+// r - request reader to fetch form data or url params
 func Post(w http.ResponseWriter, r *http.Request) {
 	var errs []string
-	var errStr, userIdStr, message string
+	var errStr, userIDStr, message string
 
-	if userIdStr, errStr = processFormField(r, "user_id"); len(errStr) != 0 {
+	if userIDStr, errStr = processFormField(r, "userID"); len(errStr) != 0 {
 		errs = append(errs, errStr)
 	}
-	user_id, err := gocql.ParseUUID(userIdStr)
+	userID, err := gocql.ParseUUID(userIDStr)
 	if err != nil {
-		errs = append(errs, "Parameter 'user_id' not a UUID")
+		errs = append(errs, "Parameter 'userID' not a UUID")
 	}
 
 	if message, errStr = processFormField(r, "message"); len(errStr) != 0 {
 		errs = append(errs, errStr)
 	}
 
-	gocqlUuid := gocql.TimeUUID()
+	gocqlUUID := gocql.TimeUUID()
 
 	var created bool = false
 	if len(errs) == 0 {
 		if err := Cassandra.Session.Query(`
-		INSERT INTO messages (id, user_id, message) VALUES (?, ?, ?)`,
-			gocqlUuid, user_id, message).Exec(); err != nil {
+		INSERT INTO messages (id, userID, message) VALUES (?, ?, ?)`,
+			gocqlUUID, userID, message).Exec(); err != nil {
 			errs = append(errs, err.Error())
 		} else {
 			created = true
@@ -43,9 +47,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		globalMessages, err := Stream.Client.FlatFeed("messages", "global")
 		if err == nil {
 			globalMessages.AddActivity(&getstream.Activity{
-				Actor: getstream.FeedID(user_id.String()),
-				Verb: "post",
-				Object: getstream.FeedID(gocqlUuid.String()),
+				Actor:  getstream.FeedID(userID.String()),
+				Verb:   "post",
+				Object: getstream.FeedID(gocqlUUID.String()),
 				MetaData: map[string]string{
 					// add as many custom keys/values here as you like
 					"message": message,
@@ -53,7 +57,7 @@ func Post(w http.ResponseWriter, r *http.Request) {
 			})
 		}
 
-		json.NewEncoder(w).Encode(NewMessageResponse{ID: gocqlUuid})
+		json.NewEncoder(w).Encode(NewMessageResponse{ID: gocqlUUID})
 	} else {
 		json.NewEncoder(w).Encode(ErrorResponse{Errors: errs})
 	}

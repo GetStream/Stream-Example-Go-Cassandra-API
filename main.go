@@ -21,12 +21,6 @@ import (
 	"github.com/gorilla/mux"
 )
 
-type HeartbeatResponse struct {
-	Status string `json:"status"`
-	Code   int `json:"code"`
-}
-
-
 func main() {
 	err := Stream.Connect(
 		"ax3bm9tjcb35",
@@ -40,7 +34,7 @@ func main() {
 	defer CassandraSession.Close()
 
 	router := mux.NewRouter().StrictSlash(true)
-	router.HandleFunc("/", Heartbeat)
+	router.HandleFunc("/", heartbeat)
 
 	router.HandleFunc("/users", Users.Get)
 	router.HandleFunc("/users/new", Users.Post)
@@ -53,7 +47,12 @@ func main() {
 	log.Fatal(http.ListenAndServe(":8080", router))
 }
 
-func Heartbeat(w http.ResponseWriter, r *http.Request) {
-	json.NewEncoder(w).Encode(HeartbeatResponse{Status: "OK", Code: 200})
+
+type heartbeatResponse struct {
+	Status string `json:"status"`
+	Code   int `json:"code"`
 }
 
+func heartbeat(w http.ResponseWriter, r *http.Request) {
+	json.NewEncoder(w).Encode(heartbeatResponse{Status: "OK", Code: 200})
+}

@@ -5,6 +5,7 @@ import (
 	"fmt"
 )
 
+// Session holds our connection to Cassandra
 var Session *gocql.Session
 
 func init() {

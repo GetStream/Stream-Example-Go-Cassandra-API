@@ -9,6 +9,10 @@ import (
 	"fmt"
 )
 
+// Get -- handles GET request to /users/ to fetch all users
+// params:
+// w - response writer for building JSON payload response
+// r - request reader to fetch form data or url params (unused here)
 func Get(w http.ResponseWriter, r *http.Request) {
 	var userList []User
 	m := map[string]interface{}{}
@@ -17,19 +21,23 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	iterable := Cassandra.Session.Query(query).Iter()
 	for iterable.MapScan(m) {
 		userList = append(userList, User{
-			ID: m["id"].(gocql.UUID),
-			Age: m["age"].(int),
+			ID:        m["id"].(gocql.UUID),
+			Age:       m["age"].(int),
 			FirstName: m["firstname"].(string),
-			LastName: m["lastname"].(string),
-			Email: m["email"].(string),
-			City: m["city"].(string),
+			LastName:  m["lastname"].(string),
+			Email:     m["email"].(string),
+			City:      m["city"].(string),
 		})
 		m = map[string]interface{}{}
 	}
 
-	json.NewEncoder(w).Encode(UsersResponse{Users: userList})
+	json.NewEncoder(w).Encode(AllUsersResponse{Users: userList})
 }
 
+// GetOne -- handles GET request to /users/{user_uuid} to fetch one user
+// params:
+// w - response writer for building JSON payload response
+// r - request reader to fetch form data or url params
 func GetOne(w http.ResponseWriter, r *http.Request) {
 	var user User
 	var errs []string
@@ -48,12 +56,12 @@ func GetOne(w http.ResponseWriter, r *http.Request) {
 		for iterable.MapScan(m) {
 			found = true
 			user = User{
-				ID: m["id"].(gocql.UUID),
-				Age: m["age"].(int),
+				ID:        m["id"].(gocql.UUID),
+				Age:       m["age"].(int),
 				FirstName: m["firstname"].(string),
-				LastName: m["lastname"].(string),
-				Email: m["email"].(string),
-				City: m["city"].(string),
+				LastName:  m["lastname"].(string),
+				Email:     m["email"].(string),
+				City:      m["city"].(string),
 			}
 		}
 		if !found {
@@ -68,7 +76,11 @@ func GetOne(w http.ResponseWriter, r *http.Request) {
 	}
 }
 
-// pass in array of UUIDs, get a map of {uuid: "firstname lastname"}
+// Enrich -- turns an array of user UUIDs into a map of {uuid: "firstname lastname"}
+// params:
+// uuids - array of user UUIDs to fetch
+// returns:
+// a map[string]string of {uuid: "firstname lastname"}
 func Enrich(uuids []gocql.UUID) map[string]string {
 	if len(uuids) > 0 {
 		fmt.Println("---\nfetching names", uuids)
@@ -79,9 +91,9 @@ func Enrich(uuids []gocql.UUID) map[string]string {
 		iterable := Cassandra.Session.Query(query, uuids).Iter()
 		for iterable.MapScan(m) {
 			fmt.Println("m", m)
-			user_id := m["id"].(gocql.UUID)
-			fmt.Println("user_id", user_id.String())
-			names[user_id.String()] = fmt.Sprintf("%s %s", m["firstname"].(string), m["lastname"].(string))
+			userID := m["id"].(gocql.UUID)
+			fmt.Println("userID", userID.String())
+			names[userID.String()] = fmt.Sprintf("%s %s", m["firstname"].(string), m["lastname"].(string))
 			m = map[string]interface{}{}
 		}
 		fmt.Println("names", names)

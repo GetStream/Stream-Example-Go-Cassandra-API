@@ -11,6 +11,10 @@ import (
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Users"
 )
 
+// Get -- handles GET request to /messages/ to fetch all messages
+// params:
+// w - response writer for building JSON payload response
+// r - request reader to fetch form data or url params (unused here)
 func Get(w http.ResponseWriter, r *http.Request) {
 	var messageList []Message
 	var enrichedMessages []Message
@@ -26,14 +30,14 @@ func Get(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Fetching activities from Stream")
 			for _, activity := range activities.Activities {
 				fmt.Println(activity)
-				user_id, _ := gocql.ParseUUID(activity.Actor.Value())
-				message_id, _ := gocql.ParseUUID(activity.Object.Value())
+				userID, _ := gocql.ParseUUID(activity.Actor.Value())
+				messageID, _ := gocql.ParseUUID(activity.Object.Value())
 				messageList = append(messageList, Message{
-					ID:      message_id,
-					UserID:  user_id,
+					ID:      messageID,
+					UserID:  userID,
 					Message: activity.MetaData["message"],
 				})
-				userList = append(userList, user_id)
+				userList = append(userList, userID)
 			}
 		}
 	}
@@ -43,13 +47,13 @@ func Get(w http.ResponseWriter, r *http.Request) {
 		query := "SELECT id,user_id,message FROM messages"
 		iterable := Cassandra.Session.Query(query).Iter()
 		for iterable.MapScan(m) {
-			user_id := m["user_id"].(gocql.UUID)
+			userID := m["userID"].(gocql.UUID)
 			messageList = append(messageList, Message{
 				ID:      m["id"].(gocql.UUID),
-				UserID:  user_id,
+				UserID:  userID,
 				Message: m["message"].(string),
 			})
-			userList = append(userList, user_id)
+			userList = append(userList, userID)
 			m = map[string]interface{}{}
 		}
 	}
@@ -61,9 +65,13 @@ func Get(w http.ResponseWriter, r *http.Request) {
 	}
 	fmt.Println("message list after enrichment", enrichedMessages)
 
-	json.NewEncoder(w).Encode(MessagesResponse{Messages: enrichedMessages})
+	json.NewEncoder(w).Encode(AllMessagesResponse{Messages: enrichedMessages})
 }
 
+// GetOne -- handles GET request to /messages/{message_uuid} to fetch one message
+// params:
+// w - response writer for building JSON payload response
+// r - request reader to fetch form data or url params
 func GetOne(w http.ResponseWriter, r *http.Request) {
 	var message Message
 	var errs []string
@@ -81,14 +89,14 @@ func GetOne(w http.ResponseWriter, r *http.Request) {
 		iterable := Cassandra.Session.Query(query, uuid).Consistency(gocql.One).Iter()
 		for iterable.MapScan(m) {
 			found = true
-			user_id := m["user_id"].(gocql.UUID)
-			names := Users.Enrich([]gocql.UUID{user_id})
+			userID := m["userID"].(gocql.UUID)
+			names := Users.Enrich([]gocql.UUID{userID})
 			fmt.Println("names", names)
 			message = Message{
-				ID: user_id,
-				UserID: m["user_id"].(gocql.UUID),
-				UserFullName: names[user_id.String()],
-				Message: m["message"].(string),
+				ID:           userID,
+				UserID:       m["userID"].(gocql.UUID),
+				UserFullName: names[userID.String()],
+				Message:      m["message"].(string),
 			}
 		}
 		if !found {
