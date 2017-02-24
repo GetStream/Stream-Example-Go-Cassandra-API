@@ -30,8 +30,8 @@ func Get(w http.ResponseWriter, r *http.Request) {
 			fmt.Println("Fetching activities from Stream")
 			for _, activity := range activities.Activities {
 				fmt.Println(activity)
-				userID, _ := gocql.ParseUUID(activity.Actor.Value())
-				messageID, _ := gocql.ParseUUID(activity.Object.Value())
+				userID, _ := gocql.ParseUUID(activity.Actor)
+				messageID, _ := gocql.ParseUUID(activity.Object)
 				messageList = append(messageList, Message{
 					ID:      messageID,
 					UserID:  userID,

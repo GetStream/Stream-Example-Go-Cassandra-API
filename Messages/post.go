@@ -7,6 +7,7 @@ import (
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Stream"
 	"github.com/GetStream/Stream-Example-Go-Cassandra-API/Cassandra"
 	getstream "github.com/GetStream/stream-go"
+	"fmt"
 )
 
 // Post -- handles POST request to /messages/new to create a new message
@@ -47,9 +48,9 @@ func Post(w http.ResponseWriter, r *http.Request) {
 		globalMessages, err := Stream.Client.FlatFeed("messages", "global")
 		if err == nil {
 			globalMessages.AddActivity(&getstream.Activity{
-				Actor:  getstream.FeedID(userID.String()),
+				Actor:  fmt.Sprintf("user:%s", userID.String()),
 				Verb:   "post",
-				Object: getstream.FeedID(gocqlUUID.String()),
+				Object: fmt.Sprintf("object:%s", gocqlUUID.String()),
 				MetaData: map[string]string{
 					// add as many custom keys/values here as you like
 					"message": message,
