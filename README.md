@@ -1,3 +1,5 @@
+> **This repository is archived and no longer maintained.** For a current alternative, see [getstream-go](https://github.com/GetStream/getstream-go).
+
 # Go-powered API using Cassandra and Stream
 
 Stream published a blog article about using Go to build a RESTful API, with Cassandra as a backend datastore
